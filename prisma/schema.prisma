@@ -1,0 +1,54 @@
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PAID
+}
+
+model Maid {
+  id               String     @id @default(cuid())
+  name             String
+  bio              String
+  photoUrl         String
+  hourlyRateCents  Int
+  serviceTypes     String[]
+  createdAt        DateTime   @default(now())
+  slots            TimeSlot[]
+  bookings         Booking[]
+}
+
+model TimeSlot {
+  id       String   @id @default(cuid())
+  maidId   String
+  maid     Maid     @relation(fields: [maidId], references: [id], onDelete: Cascade)
+  startsAt DateTime
+  endsAt   DateTime
+  booking  Booking?
+
+  @@unique([maidId, startsAt])
+  @@index([maidId, startsAt])
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  auth0UserId String
+  maidId      String
+  maid        Maid          @relation(fields: [maidId], references: [id], onDelete: Cascade)
+  slotId      String        @unique
+  slot        TimeSlot      @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  status      BookingStatus @default(PENDING)
+  serviceType String
+  priceCents  Int
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+}

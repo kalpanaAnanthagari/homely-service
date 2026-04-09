@@ -1,0 +1,62 @@
+[
+  {
+    "id": "mock-01-priya",
+    "name": "Priya Menon",
+    "bio": "8+ years in Bengaluru homes—deep cleans, kitchen focus, and eco-friendly supplies on request. Punctual and pet-friendly.",
+    "photoUrl": "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=85",
+    "hourlyRateCents": 35000,
+    "serviceTypes": ["Deep clean", "Move-out help", "Eco supplies"],
+    "rating": 4.95,
+    "reviewCount": 62
+  },
+  {
+    "id": "mock-02-arjun",
+    "name": "Arjun Kapoor",
+    "bio": "Former hotel housekeeping—fast turnovers for flats and villas. Great for same-week visits and festival prep.",
+    "photoUrl": "https://images.unsplash.com/photo-1556909172-54557c7e4c29?auto=format&fit=crop&w=1200&q=85",
+    "hourlyRateCents": 32000,
+    "serviceTypes": ["Home cleaning", "Laundry add-on", "Express slot"],
+    "rating": 4.88,
+    "reviewCount": 41
+  },
+  {
+    "id": "mock-03-kavitha",
+    "name": "Kavitha Nair",
+    "bio": "Kitchens and baths are my forte—tiles, sinks, and fixtures brought back to shine. Clear communication every visit.",
+    "photoUrl": "https://images.unsplash.com/photo-1578500494198-246f612d84b6?auto=format&fit=crop&w=1200&q=85",
+    "hourlyRateCents": 38000,
+    "serviceTypes": ["Kitchen focus", "Bathroom detail", "Utensils"],
+    "rating": 4.92,
+    "reviewCount": 57
+  },
+  {
+    "id": "mock-04-fatima",
+    "name": "Fatima Sheikh",
+    "bio": "Cleaning plus light organising—ideal before guests, after travel, or when the whole flat needs a reset.",
+    "photoUrl": "https://images.unsplash.com/photo-1527515635722-cbf529674f6b?auto=format&fit=crop&w=1200&q=85",
+    "hourlyRateCents": 30000,
+    "serviceTypes": ["Declutter assist", "Standard clean", "Post-party"],
+    "rating": 4.9,
+    "reviewCount": 35
+  },
+  {
+    "id": "mock-05-rohan",
+    "name": "Rohan Sharma",
+    "bio": "Recurring weekly or bi-weekly plans across Mumbai. Reliable for laundry, dusting, and full-home upkeep.",
+    "photoUrl": "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&w=1200&q=85",
+    "hourlyRateCents": 28000,
+    "serviceTypes": ["Recurring visits", "Laundry", "Deep clean"],
+    "rating": 4.86,
+    "reviewCount": 29
+  },
+  {
+    "id": "mock-06-ananya",
+    "name": "Ananya Iyer",
+    "bio": "Short-stay and PG turnover—linens, restocking, and photo-ready rooms between guests. Same-day slots when open.",
+    "photoUrl": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=85",
+    "hourlyRateCents": 40000,
+    "serviceTypes": ["Rental turnover", "Linen & wash", "Express"],
+    "rating": 4.97,
+    "reviewCount": 71
+  }
+]
