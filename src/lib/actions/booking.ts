@@ -1,16 +1,48 @@
 "use server";
 
+import { type Prisma } from "@/generated/prisma/client";
+
 import { getPrisma } from "@/lib/db";
 import { auth0 } from "@/lib/auth0";
+import { findMockMaidById } from "@/lib/mock-maids";
 import { priceForBooking } from "@/lib/services";
 import {
-  createBookingSchema,
+  createBookingDurationSchema,
   mockPaySchema,
 } from "@/lib/validations/booking";
 
 export type CreateBookingResult =
   | { ok: true; bookingId: string }
   | { ok: false; error: string };
+
+function tomorrowDemoStart(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(9, 0, 0, 0);
+  d.setMilliseconds(d.getMilliseconds() + Math.floor(Math.random() * 1_000_000_000));
+  return d;
+}
+
+async function ensureMaidForBooking(tx: Prisma.TransactionClient, maidId: string) {
+  const existing = await tx.maid.findUnique({ where: { id: maidId } });
+  if (existing) {
+    return existing;
+  }
+  const mock = findMockMaidById(maidId);
+  if (!mock) {
+    throw new Error("NOT_FOUND");
+  }
+  return tx.maid.create({
+    data: {
+      id: mock.id,
+      name: mock.name,
+      bio: mock.bio,
+      photoUrl: mock.photoUrl,
+      hourlyRateCents: mock.hourlyRateCents,
+      serviceTypes: mock.serviceTypes,
+    },
+  });
+}
 
 export async function createPendingBooking(
   input: unknown,
@@ -21,42 +53,43 @@ export async function createPendingBooking(
     return { ok: false, error: "You must be signed in to book." };
   }
 
-  const parsed = createBookingSchema.safeParse(input);
+  const parsed = createBookingDurationSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: "Invalid booking details." };
   }
 
-  const { maidId, slotId, serviceType } = parsed.data;
+  const { maidId, serviceType, durationHours } = parsed.data;
   const prisma = getPrisma();
 
   try {
     const booking = await prisma.$transaction(async (tx) => {
-      const slot = await tx.timeSlot.findFirst({
-        where: {
-          id: slotId,
-          maidId,
-          booking: null,
-          startsAt: { gt: new Date() },
-        },
-        include: { maid: true },
-      });
+      const maid = await ensureMaidForBooking(tx, maidId);
 
-      if (!slot) {
-        throw new Error("UNAVAILABLE");
-      }
+      const startsAt = tomorrowDemoStart();
+      const endsAt = new Date(
+        startsAt.getTime() + durationHours * 60 * 60 * 1000,
+      );
 
       const priceCents = priceForBooking(
-        slot.maid.hourlyRateCents,
-        slot.startsAt,
-        slot.endsAt,
+        maid.hourlyRateCents,
+        startsAt,
+        endsAt,
         serviceType,
       );
+
+      const slot = await tx.timeSlot.create({
+        data: {
+          maidId: maid.id,
+          startsAt,
+          endsAt,
+        },
+      });
 
       return tx.booking.create({
         data: {
           auth0UserId: userId,
-          maidId,
-          slotId,
+          maidId: maid.id,
+          slotId: slot.id,
           status: "PENDING",
           serviceType,
           priceCents,
@@ -66,11 +99,10 @@ export async function createPendingBooking(
 
     return { ok: true, bookingId: booking.id };
   } catch (e) {
-    if (e instanceof Error && e.message === "UNAVAILABLE") {
+    if (e instanceof Error && e.message === "NOT_FOUND") {
       return {
         ok: false,
-        error:
-          "That time is no longer available. Please pick another slot.",
+        error: "That helper is not available. Please choose another.",
       };
     }
     if (
@@ -81,7 +113,7 @@ export async function createPendingBooking(
     ) {
       return {
         ok: false,
-        error: "That slot was just booked. Please choose another time.",
+        error: "Could not reserve that slot. Please try again.",
       };
     }
     return {

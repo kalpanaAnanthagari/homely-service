@@ -8,10 +8,10 @@ const serviceIds = [
   "move_out",
 ] as const;
 
-export const createBookingSchema = z.object({
+export const createBookingDurationSchema = z.object({
   maidId: z.string().min(1),
-  slotId: z.string().min(1),
   serviceType: z.enum(serviceIds),
+  durationHours: z.union([z.literal(1), z.literal(2), z.literal(4)]),
 });
 
 export const mockPaySchema = z.object({

@@ -19,23 +19,7 @@ import { MaidBookingForm } from "./maid-booking-form";
 const DEFAULT_RATING = 4.9;
 const DEFAULT_REVIEW_COUNT = 48;
 
-function formatSlotRange(startsAt: Date, endsAt: Date) {
-  const opts: Intl.DateTimeFormatOptions = {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  };
-  const start = startsAt.toLocaleString("en-IN", opts);
-  const end = endsAt.toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return `${start} – ${end}`;
-}
-
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = Readonly<{ params: Promise<{ id: string }> }>;
 
 export default async function MaidDetailPage({ params }: PageProps) {
   const { id } = await params;
@@ -48,8 +32,8 @@ export default async function MaidDetailPage({ params }: PageProps) {
     serviceTypes: string[];
     rating: number;
     reviewCount: number;
+    hourlyRateCents: number;
   };
-  let slots: { id: string; startsAt: Date; endsAt: Date }[] = [];
 
   try {
     const prisma = getPrisma();
@@ -59,20 +43,11 @@ export default async function MaidDetailPage({ params }: PageProps) {
         ...fromDb,
         rating: DEFAULT_RATING,
         reviewCount: DEFAULT_REVIEW_COUNT,
+        hourlyRateCents: fromDb.hourlyRateCents,
       };
-      slots = await prisma.timeSlot.findMany({
-        where: {
-          maidId: id,
-          booking: null,
-          startsAt: { gt: new Date() },
-        },
-        orderBy: { startsAt: "asc" },
-        take: 80,
-      });
     }
   } catch {
     maid = null;
-    slots = [];
   }
 
   if (!maid) {
@@ -86,6 +61,7 @@ export default async function MaidDetailPage({ params }: PageProps) {
         serviceTypes: mock.serviceTypes,
         rating: mock.rating,
         reviewCount: mock.reviewCount,
+        hourlyRateCents: mock.hourlyRateCents,
       };
     }
   }
@@ -93,13 +69,6 @@ export default async function MaidDetailPage({ params }: PageProps) {
   if (!maid) {
     notFound();
   }
-
-  const slotOptions = slots.map((s) => ({
-    id: s.id,
-    startsAt: s.startsAt.toISOString(),
-    endsAt: s.endsAt.toISOString(),
-    label: formatSlotRange(s.startsAt, s.endsAt),
-  }));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -149,12 +118,15 @@ export default async function MaidDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>Book a visit</CardTitle>
               <CardDescription>
-                Pick a time and service, then tap Book service. Your visit is
-                saved when booking completes.
+                Choose how long you need (demo slots), pick a service, then book.
+                Your visit is saved when booking completes.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <MaidBookingForm maidId={maid.id} slots={slotOptions} />
+              <MaidBookingForm
+                maidId={maid.id}
+                hourlyRateCents={maid.hourlyRateCents}
+              />
             </CardContent>
           </Card>
         </div>
